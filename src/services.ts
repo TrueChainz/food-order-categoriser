@@ -8,6 +8,8 @@
 //   return filtered_file;
 // }
 
+import { Workbook } from "exceljs";
+
 // fn sort_by_categories(filtered_file: Vec<File>, categories: Categories) -> Vec<Value> {
 //   let mut sorted_file: Vec<Value> = vec![];
 //   let iterable_headers: HashMap<String, Option<String>> =
@@ -74,3 +76,42 @@ export function sortByCategories(filteredFile: any[], categories: any[]) {
   }
   return sortedFile;
 }
+
+const uploadFile = async (files: FileList, formattedDate: string) => {
+  const reader = new FileReader();
+  reader.onload = (e: any) => {
+    const data = e.target.result;
+    const workbook = new Workbook();
+    workbook.xlsx.load(data).then(async (book) => {
+      let headers: any = [];
+      const worksheet = book.worksheets[0];
+      const json: any[] = [];
+      worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+        if (rowNumber === 1) {
+          headers = row.values;
+        } else {
+          let rowData: any = {};
+          headers.forEach((header: any, i: number) => {
+            let index = i;
+            let data = row.getCell(index).value;
+            rowData[header] = data;
+          });
+          json.push(rowData);
+        }
+      });
+      let filteredFile = filterByDate(json, formattedDate);
+      let sortedFile = sortByCategories(
+        filteredFile,
+        headers.filter((col: any, i: number) => {
+          if (col) {
+            console.log(col);
+          }
+          if (i > 7 && i < 13) return true;
+          return false;
+        })
+      );
+      console.log(sortedFile);
+    });
+  };
+  reader.readAsArrayBuffer(files[0]);
+};

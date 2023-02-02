@@ -1,17 +1,14 @@
-import axios from "axios";
-import { read, utils, write, writeFile } from "xlsx";
-import { CellValue, Workbook } from "exceljs";
-import React, { ChangeEvent, ReactEventHandler, useRef, useState } from "react";
+import { Workbook } from "exceljs";
+import { useRef, useState } from "react";
 import { formatDate, validateInputs } from "./helper";
-import { Temporal } from "@js-temporal/polyfill";
-import { CATEGORIES, filterByDate, sortByCategories } from "./services";
 import CategorySelector from "./components/CategorySelector";
 
 function App() {
   const [error, setError] = useState("");
-  const [file, setFile] = useState();
   const [headers, setHeaders] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [accompanimentHeader, setAccompanimentHeader] = useState<any>();
+  const [dietaryHeader, setDietaryHeader] = useState<any>();
 
   const fileRef = useRef<HTMLInputElement | null>(null);
   const dateRef = useRef<HTMLInputElement | null>(null);
@@ -20,47 +17,6 @@ function App() {
     setTimeout(() => {
       setError("");
     }, 2000);
-  };
-
-  const uploadFile = async (files: FileList, formattedDate: string) => {
-    const reader = new FileReader();
-    console.log(123);
-    reader.onload = (e: any) => {
-      const data = e.target.result;
-      const workbook = new Workbook();
-      workbook.xlsx.load(data).then(async (book) => {
-        let headers: any = [];
-        const worksheet = book.worksheets[0];
-        const json: any[] = [];
-        worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
-          if (rowNumber === 1) {
-            headers = row.values;
-          } else {
-            let rowData: any = {};
-            headers.forEach((header: any, i: number) => {
-              let index = i;
-              let data = row.getCell(index).value;
-              rowData[header] = data;
-            });
-            json.push(rowData);
-          }
-        });
-        let filteredFile = filterByDate(json, formattedDate);
-        console.log(filteredFile);
-        let sortedFile = sortByCategories(
-          filteredFile,
-          headers.filter((col: any, i: number) => {
-            if (col) {
-              console.log(col);
-            }
-            if (i > 7 && i < 13) return true;
-            return false;
-          })
-        );
-        console.log(sortedFile);
-      });
-    };
-    reader.readAsArrayBuffer(files[0]);
   };
 
   const scanFile = () => {
@@ -78,7 +34,7 @@ function App() {
       const workbook = new Workbook();
       workbook.xlsx.load(data).then((book) => {
         const worksheet = workbook.worksheets[0];
-        setHeaders(worksheet.getRow(1).values as any[]);
+        setHeaders(worksheet.getRow(1).values as unknown[]);
       });
     };
     reader.readAsArrayBuffer(file);
@@ -149,7 +105,16 @@ function App() {
                 Scan
               </div>
             </div>
-            <CategorySelector headers={headers} />
+            <CategorySelector
+              headers={headers}
+              categories={categories}
+              accompanimentHeader={accompanimentHeader}
+              dietaryHeader={dietaryHeader}
+              setHeaders={setHeaders}
+              setCategories={setCategories}
+              setAccompanimentHeader={setAccompanimentHeader}
+              setDietaryHeader={setDietaryHeader}
+            />
             <div className="my-2 mx-auto">
               <button
                 className="btn-primary btn mx-auto w-fit"
@@ -166,3 +131,6 @@ function App() {
 }
 
 export default App;
+function uploadFile(files: FileList, formattedDate: string) {
+  throw new Error("Function not implemented.");
+}
