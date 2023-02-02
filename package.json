@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@formkit/auto-animate": "^1.0.0-beta.6",
     "@js-temporal/polyfill": "^0.4.3",
     "axios": "^1.2.6",
     "daisyui": "^2.49.0",
